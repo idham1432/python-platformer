@@ -368,8 +368,16 @@ def main(window):
                   player.jump()
 
       player.loop(FPS)
+
       for fire in fires:
         fire.loop()
+
+      # Check fire collisions
+      for fire in fires:
+        if pygame.sprite.collide_mask(player, fire):
+            player.make_hit()
+            break  # avoid hitting repeatedly in same frame
+
       handle_move(player, objects)
       draw(window, background, bg_image, player, objects, offset_x, level_image, fires)
 
