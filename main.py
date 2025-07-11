@@ -215,19 +215,22 @@ def get_background(name):
 
   return tiles, image
 
-def draw(window, background, bg_image, player, objects, offset_x, level_img):
-  for tile in background:
-      window.blit(bg_image, tile)
+def draw(window, background, bg_image, player, objects, offset_x, level_img, fires):
+    for tile in background:
+        window.blit(bg_image, tile)
 
-  for obj in objects:
-      obj.draw(window, offset_x)
+    for obj in objects:
+        obj.draw(window, offset_x)
 
-  player.draw(window, offset_x)
+    for fire in fires:
+        fire.draw(window, offset_x)
 
-  level_rect = level_img.get_rect(midtop=(WIDTH // 2, 20))
-  window.blit(level_img, level_rect)
+    player.draw(window, offset_x)
 
-  pygame.display.update()
+    level_rect = level_img.get_rect(midtop=(WIDTH // 2, 20))
+    window.blit(level_img, level_rect)
+
+    pygame.display.update()
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -289,30 +292,43 @@ def game_over_screen(win):
 
 def generate_fixed_platform_course(block_size):
     blocks = []
+    fires = []
 
-    # Ground platform (continuous across the screen width)
-    num_ground_blocks = (WIDTH * 2) // block_size  # extend far beyond screen width
+    # Ground platform
+    num_ground_blocks = (WIDTH * 2) // block_size
     for i in range(-WIDTH // block_size, num_ground_blocks):
         x = i * block_size
         y = HEIGHT - block_size
         blocks.append(Block(x, y, block_size))
 
-    # Floating platforms (start_x_index, tier, length)
+    # Floating platforms
     platform_layout = [
+        (0,2,1),
         (6, 5, 2), (10, 4, 3), (15, 3, 2), (20, 4, 4),
         (26, 5, 3), (31, 4, 2), (35, 3, 3), (40, 4, 2),
         (45, 5, 4), (52, 4, 2), (56, 3, 3), (61, 4, 2),
         (66, 5, 3), (71, 4, 2), (75, 3, 4), (81, 4, 2),
         (86, 5, 3), (91, 4, 2), (95, 3, 3), (100, 4, 2),
     ]
-
     for start_x_index, tier, length in platform_layout:
         y = HEIGHT - block_size * tier
         for i in range(length):
             x = (start_x_index + i) * block_size
             blocks.append(Block(x, y, block_size))
 
-    return blocks
+    # Fire layout: (x_block_index, tier)
+    fire_layout = [
+        (1,2), (6,6), (12, 2), (22, 5)
+    ]
+    for x_index, tier in fire_layout:
+        x = x_index * block_size + (block_size - 16) // 2  # center horizontally
+        y = HEIGHT - block_size * tier + 32  # position on top of block
+        fire = Fire(x, y, 16, 32)
+        fire.on()
+        fires.append(fire)
+
+    return blocks, fires
+
 
 def main(window):
   clock = pygame.time.Clock()
@@ -328,11 +344,9 @@ def main(window):
   block_size = 96
 
 #   player = Player(100, 100, 50, 50)
-  fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
-  fire.on()
   floor = [Block(i * block_size, HEIGHT - block_size, block_size)
             for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-  objects = generate_fixed_platform_course(block_size)
+  objects, fires = generate_fixed_platform_course(block_size)
   spawn_x = 2 * block_size
   spawn_y = HEIGHT - block_size * 2  # one block above ground
   player = Player(spawn_x, spawn_y, 50, 50)
@@ -354,9 +368,10 @@ def main(window):
                   player.jump()
 
       player.loop(FPS)
-      fire.loop()
+      for fire in fires:
+        fire.loop()
       handle_move(player, objects)
-      draw(window, background, bg_image, player, objects, offset_x, level_image)
+      draw(window, background, bg_image, player, objects, offset_x, level_image, fires)
 
       if player.rect.top > HEIGHT:
         font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
