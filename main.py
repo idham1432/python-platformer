@@ -6,7 +6,7 @@ from os import listdir
 from os.path import isfile, join
 pygame.init()
 
-pygame.display.set_caption("Platformer")
+pygame.display.set_caption("Ninja Frog")
 
 WIDTH, HEIGHT = 1000, 800
 FPS = 60
@@ -49,6 +49,7 @@ def get_block(size):
   image = pygame.image.load(path).convert_alpha()
   surface = pygame.Surface((size, size), pygame.SRCALPHA, 16)
   rect = pygame.Rect(96, 0, size, size)
+  # rect = pygame.Rect(0, 0, size, size)
   surface.blit(image, (0, 0), rect)
   return pygame.transform.scale2x(surface)
 
@@ -214,8 +215,7 @@ def get_background(name):
 
   return tiles, image
 
-
-def draw(window, background, bg_image, player, objects, offset_x):
+def draw(window, background, bg_image, player, objects, offset_x, level_img):
   for tile in background:
       window.blit(bg_image, tile)
 
@@ -223,6 +223,9 @@ def draw(window, background, bg_image, player, objects, offset_x):
       obj.draw(window, offset_x)
 
   player.draw(window, offset_x)
+
+  level_rect = level_img.get_rect(midtop=(WIDTH // 2, 20))
+  window.blit(level_img, level_rect)
 
   pygame.display.update()
 
@@ -313,7 +316,14 @@ def generate_fixed_platform_course(block_size):
 
 def main(window):
   clock = pygame.time.Clock()
-  background, bg_image = get_background("Blue.png")
+  background, bg_image = get_background("Yellow.png")
+
+  # Load and scale the level image
+  level_image = pygame.image.load(os.path.join("assets", "Menu", "Levels", "01.png")).convert_alpha()
+
+  # Scale the image to desired size (e.g., double the original)
+  level_image = pygame.transform.scale(level_image, (80, 80))
+
 
   block_size = 96
 
@@ -346,7 +356,7 @@ def main(window):
       player.loop(FPS)
       fire.loop()
       handle_move(player, objects)
-      draw(window, background, bg_image, player, objects, offset_x)
+      draw(window, background, bg_image, player, objects, offset_x, level_image)
 
       if player.rect.top > HEIGHT:
         font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
