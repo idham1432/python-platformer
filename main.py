@@ -284,19 +284,48 @@ def game_over_screen(win):
     pygame.display.update()
     pygame.time.delay(2000)
 
+def generate_fixed_platform_course(block_size):
+    blocks = []
+
+    # Ground platform (continuous across the screen width)
+    num_ground_blocks = (WIDTH * 2) // block_size  # extend far beyond screen width
+    for i in range(-WIDTH // block_size, num_ground_blocks):
+        x = i * block_size
+        y = HEIGHT - block_size
+        blocks.append(Block(x, y, block_size))
+
+    # Floating platforms (start_x_index, tier, length)
+    platform_layout = [
+        (6, 5, 2), (10, 4, 3), (15, 3, 2), (20, 4, 4),
+        (26, 5, 3), (31, 4, 2), (35, 3, 3), (40, 4, 2),
+        (45, 5, 4), (52, 4, 2), (56, 3, 3), (61, 4, 2),
+        (66, 5, 3), (71, 4, 2), (75, 3, 4), (81, 4, 2),
+        (86, 5, 3), (91, 4, 2), (95, 3, 3), (100, 4, 2),
+    ]
+
+    for start_x_index, tier, length in platform_layout:
+        y = HEIGHT - block_size * tier
+        for i in range(length):
+            x = (start_x_index + i) * block_size
+            blocks.append(Block(x, y, block_size))
+
+    return blocks
+
 def main(window):
   clock = pygame.time.Clock()
   background, bg_image = get_background("Blue.png")
 
   block_size = 96
 
-  player = Player(100, 100, 50, 50)
+#   player = Player(100, 100, 50, 50)
   fire = Fire(100, HEIGHT - block_size - 64, 16, 32)
   fire.on()
   floor = [Block(i * block_size, HEIGHT - block_size, block_size)
             for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-  objects = [*floor, Block(0, HEIGHT - block_size * 2, block_size),
-              Block(block_size * 3, HEIGHT - block_size * 4, block_size), fire]
+  objects = generate_fixed_platform_course(block_size)
+  spawn_x = 2 * block_size
+  spawn_y = HEIGHT - block_size * 2  # one block above ground
+  player = Player(spawn_x, spawn_y, 50, 50)
 
   offset_x = 0
   scroll_area_width = 200
