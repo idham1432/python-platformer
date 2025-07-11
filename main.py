@@ -276,6 +276,13 @@ def handle_move(player, objects):
       if obj and obj.name == "fire":
           player.make_hit()
 
+def game_over_screen(win):
+    font = pygame.font.SysFont("arial", 80, bold=True)
+    text = font.render("GAME OVER", True, (255, 0, 0))
+    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    win.blit(text, rect)
+    pygame.display.update()
+    pygame.time.delay(2000)
 
 def main(window):
   clock = pygame.time.Clock()
@@ -311,6 +318,17 @@ def main(window):
       fire.loop()
       handle_move(player, objects)
       draw(window, background, bg_image, player, objects, offset_x)
+
+      if player.rect.top > HEIGHT:
+        font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
+        game_over_font = pygame.font.Font(font_path, 80)  # Change to your desired font and size
+        text = game_over_font.render("GAME OVER", True, (0, 0, 0))
+        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+        window.blit(text, text_rect)
+        pygame.display.update()
+        pygame.time.delay(3000)  # Wait for 3 seconds before quitting
+        run = False
+
 
       if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
               (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
