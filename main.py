@@ -390,13 +390,34 @@ def handle_move(player, objects):
           player.make_hit()
 
 def game_over_screen(win):
-    font = os.path.join("assets", "fonts", "RetroGaming.ttf")
-    font = pygame.font.SysFont("arial", 80, bold=True)
-    text = font.render("GAME OVER", True, (255, 0, 0))
-    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    win.blit(text, rect)
+    font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
+
+    # Large "GAME OVER" text
+    title_font = pygame.font.Font(font_path, 80)
+    title_text = title_font.render("GAME OVER", True, (255, 0, 0))
+    title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40))
+
+    # Smaller instruction text
+    subtitle_font = pygame.font.Font(font_path, 30)
+    subtitle_text = subtitle_font.render("Press SPACE to play again", True, (255, 255, 255))
+    subtitle_rect = subtitle_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
+
+    # Clear screen and draw texts
+    win.fill((0, 0, 0))
+    win.blit(title_text, title_rect)
+    win.blit(subtitle_text, subtitle_rect)
     pygame.display.update()
-    pygame.time.delay(2000)
+
+    # Wait for SPACE key press to restart
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting = False
 
 def generate_fixed_platform_course(block_size):
     blocks = []
@@ -522,14 +543,9 @@ def main(window):
       draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits, checkpoints)
 
       if player.rect.top > HEIGHT:
-        font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
-        game_over_font = pygame.font.Font(font_path, 80)  # Change to your desired font and size
-        text = game_over_font.render("GAME OVER", True, (0, 0, 0))
-        text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-        window.blit(text, text_rect)
-        pygame.display.update()
-        pygame.time.delay(3000)  # Wait for 3 seconds before quitting
-        run = False
+        game_over_screen(window)
+        main(window)  # Restart game
+        return        # Exit current loop
 
       for checkpoint in checkpoints:
         if pygame.sprite.collide_mask(player, checkpoint):
