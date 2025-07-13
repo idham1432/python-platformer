@@ -207,28 +207,52 @@ class Fruit(Object):
     ANIMATION_DELAY = 3
 
     def __init__(self, x, y):
-        super().__init__(x, y, 32, 32, "fruit")
-        self.sprite_sheet = pygame.image.load("assets/Items/Fruits/Apple.png").convert_alpha()
-        self.frames = []
-        for i in range(self.sprite_sheet.get_width() // 32):
+        super().__init__(x, y - 4, 32, 32, "fruit")  # Y axis moved up by 4px
+        self.apple_sheet = pygame.image.load("assets/Items/Fruits/Apple.png").convert_alpha()
+        self.collected_sheet = pygame.image.load("assets/Items/Fruits/Collected.png").convert_alpha()
+
+        # Load apple frames
+        self.apple_frames = []
+        for i in range(self.apple_sheet.get_width() // 32):
             surface = pygame.Surface((32, 32), pygame.SRCALPHA)
             rect = pygame.Rect(i * 32, 0, 32, 32)
-            surface.blit(self.sprite_sheet, (0, 0), rect)
-            self.frames.append(pygame.transform.scale2x(surface))
+            surface.blit(self.apple_sheet, (0, 0), rect)
+            self.apple_frames.append(pygame.transform.scale2x(surface))
+
+        # Load collected frames
+        self.collected_frames = []
+        for i in range(self.collected_sheet.get_width() // 32):
+            surface = pygame.Surface((32, 32), pygame.SRCALPHA)
+            rect = pygame.Rect(i * 32, 0, 32, 32)
+            surface.blit(self.collected_sheet, (0, 0), rect)
+            self.collected_frames.append(pygame.transform.scale2x(surface))
+
         self.animation_count = 0
         self.collected = False
-        self.mask = pygame.mask.from_surface(self.frames[0])
+        self.finished_collected_animation = False
+        self.mask = pygame.mask.from_surface(self.apple_frames[0])
 
     def loop(self):
+        if self.finished_collected_animation:
+            return  # Do nothing if collected animation has finished
+
         if not self.collected:
-            frame_index = (self.animation_count // self.ANIMATION_DELAY) % len(self.frames)
-            self.image = self.frames[frame_index]
-            self.animation_count += 1
-            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
-            self.mask = pygame.mask.from_surface(self.image)
+            frame_index = (self.animation_count // self.ANIMATION_DELAY) % len(self.apple_frames)
+            self.image = self.apple_frames[frame_index]
+        else:
+            frame_index = self.animation_count // self.ANIMATION_DELAY
+            if frame_index < len(self.collected_frames):
+                self.image = self.collected_frames[frame_index]
+            else:
+                self.finished_collected_animation = True
+                return
+
+        self.animation_count += 1
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
 
     def draw(self, win, offset_x):
-        if not self.collected:
+        if not self.finished_collected_animation:
             win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 
@@ -430,6 +454,7 @@ def main(window):
         fruit.loop()
         if not fruit.collected and pygame.sprite.collide_mask(player, fruit):
             fruit.collected = True
+            fruit.animation_count = 0
 
       handle_move(player, objects)
       draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits)
