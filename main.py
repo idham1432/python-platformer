@@ -203,6 +203,35 @@ class Fire(Object):
           self.animation_count = 0
 
 
+class Fruit(Object):
+    ANIMATION_DELAY = 3
+
+    def __init__(self, x, y):
+        super().__init__(x, y, 32, 32, "fruit")
+        self.sprite_sheet = pygame.image.load("assets/Items/Fruits/Apple.png").convert_alpha()
+        self.frames = []
+        for i in range(self.sprite_sheet.get_width() // 32):
+            surface = pygame.Surface((32, 32), pygame.SRCALPHA)
+            rect = pygame.Rect(i * 32, 0, 32, 32)
+            surface.blit(self.sprite_sheet, (0, 0), rect)
+            self.frames.append(pygame.transform.scale2x(surface))
+        self.animation_count = 0
+        self.collected = False
+        self.mask = pygame.mask.from_surface(self.frames[0])
+
+    def loop(self):
+        if not self.collected:
+            frame_index = (self.animation_count // self.ANIMATION_DELAY) % len(self.frames)
+            self.image = self.frames[frame_index]
+            self.animation_count += 1
+            self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+            self.mask = pygame.mask.from_surface(self.image)
+
+    def draw(self, win, offset_x):
+        if not self.collected:
+            win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
+
+
 def get_background(name):
   image = pygame.image.load(join("assets", "Background", name))
   _, _, width, height = image.get_rect()
@@ -215,7 +244,7 @@ def get_background(name):
 
   return tiles, image
 
-def draw(window, background, bg_image, player, objects, offset_x, level_img, fires):
+def draw(window, background, bg_image, player, objects, offset_x, level_img, fires, fruits):
     for tile in background:
         window.blit(bg_image, tile)
 
@@ -224,6 +253,9 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
 
     for fire in fires:
         fire.draw(window, offset_x)
+    
+    for fruit in fruits:
+        fruit.draw(window, offset_x)
 
     player.draw(window, offset_x)
 
@@ -293,6 +325,7 @@ def game_over_screen(win):
 def generate_fixed_platform_course(block_size):
     blocks = []
     fires = []
+    fruits = []
 
     # Ground platform
     num_ground_blocks = (WIDTH * 2) // block_size
@@ -331,8 +364,18 @@ def generate_fixed_platform_course(block_size):
         fire = Fire(x, y, 16, 32)
         fire.on()
         fires.append(fire)
+    
+    # Example fruit positions
+    fruit_positions = [
+        (7,6), (14, 1), (11,5), (11,6), (12,5), (12,6), (20,1), (20,2), (21,1), (21,2), (22,1), (22,2), (25, 2), (55, 2), (95, 2)
+    ]
 
-    return blocks, fires
+    for x_block, tier in fruit_positions:
+        x = x_block * block_size + (block_size - 32) // 2 - 16
+        y = HEIGHT - block_size * tier - 32 - 32
+        fruits.append(Fruit(x, y))
+
+    return blocks, fires, fruits
 
 
 def main(window):
@@ -351,7 +394,7 @@ def main(window):
 #   player = Player(100, 100, 50, 50)
   floor = [Block(i * block_size, HEIGHT - block_size, block_size)
             for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-  objects, fires = generate_fixed_platform_course(block_size)
+  objects, fires, fruits = generate_fixed_platform_course(block_size)
   spawn_x = 2 * block_size
   spawn_y = HEIGHT - block_size * 2  # one block above ground
   player = Player(spawn_x, spawn_y, 50, 50)
@@ -382,9 +425,14 @@ def main(window):
         if pygame.sprite.collide_mask(player, fire):
             player.make_hit()
             break  # avoid hitting repeatedly in same frame
+    
+      for fruit in fruits:
+        fruit.loop()
+        if not fruit.collected and pygame.sprite.collide_mask(player, fruit):
+            fruit.collected = True
 
       handle_move(player, objects)
-      draw(window, background, bg_image, player, objects, offset_x, level_image, fires)
+      draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits)
 
       if player.rect.top > HEIGHT:
         font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
