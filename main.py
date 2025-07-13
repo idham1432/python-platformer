@@ -14,7 +14,7 @@ FPS = 60
 PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
-
+die_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "die.mp3"))
 
 def flip(sprites):
   return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -439,7 +439,11 @@ def generate_fixed_platform_course(block_size):
         (0,2,1),
         (6, 5, 2), (10, 4, 3), (15, 2, 3), (15, 3, 2), 
         (20, 1, 4), (23, 2, 1), (23, 3, 1), (20, 4, 4),
-        (26, 5, 3), (31, 4, 2), (35, 3, 3), (40, 4, 2),
+        (29, 2, 1), (30, 3, 1), (31, 4, 1),
+        (26, 5, 3), (31, 4, 2), (35, 1, 1), (35, 2, 1), 
+        (35, 3, 1), (37, 1, 1), (37, 2, 1), (37, 3, 1), 
+        (39, 1, 1), (39, 2, 1), (39, 3, 1),
+        (41, 1, 1), (41, 2, 1), (41, 3, 1),(41, 4, 1),
         (45, 5, 4), (52, 4, 2), (56, 3, 3), (61, 4, 2),
         (66, 5, 3), (71, 4, 2), (75, 3, 4), (81, 4, 2),
         (86, 5, 3), (91, 4, 2), (95, 3, 3), (100, 4, 2),
@@ -465,7 +469,7 @@ def generate_fixed_platform_course(block_size):
     
     # Example fruit positions
     fruit_positions = [
-        (7,6), (14, 1), (11,5), (11,6), (12,5), (12,6), (20,1), (20,2), (21,1), (21,2), (22,1), (22,2), (25, 2), (55, 2), (95, 2)
+        (7,6), (14, 1), (11,5), (11,6), (12,5), (12,6), (20,1), (20,2), (21,1), (21,2), (22,1), (22,2), (31,2), (32, 2), (55, 2), (95, 2)
     ]
 
     for x_block, tier in fruit_positions:
@@ -543,6 +547,7 @@ def main(window):
       draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits, checkpoints)
 
       if player.rect.top > HEIGHT:
+        die_sound.play()
         game_over_screen(window)
         main(window)  # Restart game
         return        # Exit current loop
