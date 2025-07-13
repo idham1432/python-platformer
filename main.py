@@ -5,6 +5,7 @@ import pygame
 from os import listdir
 from os.path import isfile, join
 pygame.init()
+pygame.mixer.init()
 
 pygame.display.set_caption("Ninja Frog")
 
@@ -205,6 +206,7 @@ class Fire(Object):
 
 class Fruit(Object):
     ANIMATION_DELAY = 3
+    collect_sound = pygame.mixer.Sound("assets/Sounds/collect.mp3")
 
     def __init__(self, x, y):
         super().__init__(x, y - 4, 32, 32, "fruit")  # Y axis moved up by 4px
@@ -229,6 +231,7 @@ class Fruit(Object):
 
         self.animation_count = 0
         self.collected = False
+        self.played_sound = False
         self.finished_collected_animation = False
         self.mask = pygame.mask.from_surface(self.apple_frames[0])
 
@@ -240,6 +243,9 @@ class Fruit(Object):
             frame_index = (self.animation_count // self.ANIMATION_DELAY) % len(self.apple_frames)
             self.image = self.apple_frames[frame_index]
         else:
+            if not self.played_sound:
+                Fruit.collect_sound.play()
+                self.played_sound = True
             frame_index = self.animation_count // self.ANIMATION_DELAY
             if frame_index < len(self.collected_frames):
                 self.image = self.collected_frames[frame_index]
