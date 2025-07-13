@@ -311,12 +311,33 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
 
 def win_screen(win):
     font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
-    font = pygame.font.Font(font_path, 80)  # Load custom TTF font
-    text = font.render("YOU WIN", True, (255, 255, 0))
-    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
-    win.blit(text, rect)
+
+    # Large "YOU WIN" text
+    title_font = pygame.font.Font(font_path, 80)
+    title_text = title_font.render("YOU WIN", True, (255, 255, 0))
+    title_rect = title_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 40))
+
+    # Smaller "Press SPACE to play again" text
+    subtitle_font = pygame.font.Font(font_path, 30)
+    subtitle_text = subtitle_font.render("Press SPACE to play again", True, (255, 255, 255))
+    subtitle_rect = subtitle_text.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
+
+    # Draw screen
+    win.fill((0, 0, 0))
+    win.blit(title_text, title_rect)
+    win.blit(subtitle_text, subtitle_rect)
     pygame.display.update()
-    pygame.time.delay(2000)
+
+    # Wait for spacebar to restart
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    waiting = False
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -433,7 +454,7 @@ def generate_fixed_platform_course(block_size):
 
         # Checkpoint positions: (x_block_index, tier)
     checkpoint_positions = [
-        (101, 5),  # example: same level as high right wall
+        (101, 5)
     ]
 
     for x_index, tier in checkpoint_positions:
@@ -513,8 +534,8 @@ def main(window):
       for checkpoint in checkpoints:
         if pygame.sprite.collide_mask(player, checkpoint):
             win_screen(window)
-            run = False
-            break
+            main(window)  # Restart game
+            return        # Exit the current run
 
       if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
               (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
