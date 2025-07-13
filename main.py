@@ -14,8 +14,10 @@ FPS = 60
 PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
+
 die_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "die.mp3"))
 win_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "next-level.mp3"))
+hit_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "hit.mp3"))
 
 def flip(sprites):
   return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -514,6 +516,9 @@ def main(window):
   offset_x = 0
   scroll_area_width = 200
 
+  last_hit_time = 0
+  hit_cooldown = 1000  # in milliseconds
+
   run = True
   while run:
       clock.tick(FPS)
@@ -533,10 +538,15 @@ def main(window):
         fire.loop()
 
       # Check fire collisions
+      current_time = pygame.time.get_ticks()
       for fire in fires:
         if pygame.sprite.collide_mask(player, fire):
-            player.make_hit()
-            break  # avoid hitting repeatedly in same frame
+            if current_time - last_hit_time >= hit_cooldown:
+                hit_sound.play()
+                player.make_hit()
+                last_hit_time = current_time
+            break
+
     
       for fruit in fruits:
         fruit.loop()
