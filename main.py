@@ -262,6 +262,17 @@ class Fruit(Object):
             win.blit(self.image, (self.rect.x - offset_x, self.rect.y))
 
 
+class Checkpoint(Object):
+    def __init__(self, x, y):
+        # 64x64 source image, display as 32x32
+        super().__init__(x, y, 64, 64, "checkpoint")
+        original_image = pygame.image.load("assets/Items/Checkpoints/End/End (Idle).png").convert_alpha()
+
+        # Scale down to 32x32
+        self.image = pygame.transform.scale(original_image, (128, 128))
+        self.mask = pygame.mask.from_surface(self.image)
+
+
 def get_background(name):
   image = pygame.image.load(join("assets", "Background", name))
   _, _, width, height = image.get_rect()
@@ -274,7 +285,7 @@ def get_background(name):
 
   return tiles, image
 
-def draw(window, background, bg_image, player, objects, offset_x, level_img, fires, fruits):
+def draw(window, background, bg_image, player, objects, offset_x, level_img, fires, fruits, checkpoints):
     for tile in background:
         window.blit(bg_image, tile)
 
@@ -286,6 +297,9 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
     
     for fruit in fruits:
         fruit.draw(window, offset_x)
+    
+    for checkpoint in checkpoints:
+        checkpoint.draw(window, offset_x)
 
     player.draw(window, offset_x)
 
@@ -293,6 +307,16 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
     window.blit(level_img, level_rect)
 
     pygame.display.update()
+
+
+def win_screen(win):
+    font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
+    font = pygame.font.Font(font_path, 80)  # Load custom TTF font
+    text = font.render("YOU WIN", True, (255, 255, 0))
+    rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+    win.blit(text, rect)
+    pygame.display.update()
+    pygame.time.delay(2000)
 
 
 def handle_vertical_collision(player, objects, dy):
@@ -345,6 +369,7 @@ def handle_move(player, objects):
           player.make_hit()
 
 def game_over_screen(win):
+    font = os.path.join("assets", "fonts", "RetroGaming.ttf")
     font = pygame.font.SysFont("arial", 80, bold=True)
     text = font.render("GAME OVER", True, (255, 0, 0))
     rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
@@ -356,6 +381,7 @@ def generate_fixed_platform_course(block_size):
     blocks = []
     fires = []
     fruits = []
+    checkpoints = []
 
     # Ground platform
     num_ground_blocks = (WIDTH * 2) // block_size
@@ -405,7 +431,17 @@ def generate_fixed_platform_course(block_size):
         y = HEIGHT - block_size * tier - 32 - 32
         fruits.append(Fruit(x, y))
 
-    return blocks, fires, fruits
+        # Checkpoint positions: (x_block_index, tier)
+    checkpoint_positions = [
+        (101, 5),  # example: same level as high right wall
+    ]
+
+    for x_index, tier in checkpoint_positions:
+        x = x_index * block_size - 16
+        y = HEIGHT - block_size * tier - 32
+        checkpoints.append(Checkpoint(x, y))
+
+    return blocks, fires, fruits, checkpoints
 
 
 def main(window):
@@ -418,13 +454,12 @@ def main(window):
   # Scale the image to desired size (e.g., double the original)
   level_image = pygame.transform.scale(level_image, (80, 80))
 
-
   block_size = 96
 
 #   player = Player(100, 100, 50, 50)
   floor = [Block(i * block_size, HEIGHT - block_size, block_size)
             for i in range(-WIDTH // block_size, (WIDTH * 2) // block_size)]
-  objects, fires, fruits = generate_fixed_platform_course(block_size)
+  objects, fires, fruits, checkpoints = generate_fixed_platform_course(block_size)
   spawn_x = 2 * block_size
   spawn_y = HEIGHT - block_size * 2  # one block above ground
   player = Player(spawn_x, spawn_y, 50, 50)
@@ -463,7 +498,7 @@ def main(window):
             fruit.animation_count = 0
 
       handle_move(player, objects)
-      draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits)
+      draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits, checkpoints)
 
       if player.rect.top > HEIGHT:
         font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
@@ -475,6 +510,11 @@ def main(window):
         pygame.time.delay(3000)  # Wait for 3 seconds before quitting
         run = False
 
+      for checkpoint in checkpoints:
+        if pygame.sprite.collide_mask(player, checkpoint):
+            win_screen(window)
+            run = False
+            break
 
       if ((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0) or (
               (player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
