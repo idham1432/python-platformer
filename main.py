@@ -15,8 +15,6 @@ PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
-font = pygame.font.Font("assets/fonts/RetroGaming.ttf", 32)
-
 die_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "die.mp3"))
 win_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "next-level.mp3"))
 hit_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "hit.mp3"))
@@ -316,8 +314,9 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
     pygame.display.update()
 
 def draw_score(window, score):
-    score_text = font.render(f"Score: {score}", True, (10, 10, 10))
-    window.blit(score_text, (20, 20))  # Top-left position
+    font = pygame.font.Font("assets/fonts/RetroGaming.ttf", 50)
+    score_text = font.render(f"{score}", True, (40, 40, 40))
+    window.blit(score_text, (30, 20))  # Top-left position
 
 def win_screen(win):
     font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
