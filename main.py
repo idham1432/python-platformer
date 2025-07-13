@@ -15,6 +15,8 @@ PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 
+font = pygame.font.Font("assets/fonts/RetroGaming.ttf", 32)
+
 die_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "die.mp3"))
 win_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "next-level.mp3"))
 hit_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "hit.mp3"))
@@ -288,7 +290,7 @@ def get_background(name):
 
   return tiles, image
 
-def draw(window, background, bg_image, player, objects, offset_x, level_img, fires, fruits, checkpoints):
+def draw(window, background, bg_image, player, objects, offset_x, level_img, fires, fruits, checkpoints, score):
     for tile in background:
         window.blit(bg_image, tile)
 
@@ -309,8 +311,13 @@ def draw(window, background, bg_image, player, objects, offset_x, level_img, fir
     level_rect = level_img.get_rect(midtop=(WIDTH // 2, 20))
     window.blit(level_img, level_rect)
 
+    draw_score(window, score)
+
     pygame.display.update()
 
+def draw_score(window, score):
+    score_text = font.render(f"Score: {score}", True, (10, 10, 10))
+    window.blit(score_text, (20, 20))  # Top-left position
 
 def win_screen(win):
     font_path = os.path.join("assets", "fonts", "RetroGaming.ttf")
@@ -497,6 +504,8 @@ def main(window):
   clock = pygame.time.Clock()
   background, bg_image = get_background("Yellow.png")
 
+  score = 0
+
   # Load and scale the level image
   level_image = pygame.image.load(os.path.join("assets", "Menu", "Levels", "01.png")).convert_alpha()
 
@@ -553,9 +562,10 @@ def main(window):
         if not fruit.collected and pygame.sprite.collide_mask(player, fruit):
             fruit.collected = True
             fruit.animation_count = 0
+            score += 5  # Increment score
 
       handle_move(player, objects)
-      draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits, checkpoints)
+      draw(window, background, bg_image, player, objects, offset_x, level_image, fires, fruits, checkpoints, score)
 
       if player.rect.top > HEIGHT:
         die_sound.play()
