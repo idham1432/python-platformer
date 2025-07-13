@@ -15,6 +15,7 @@ PLAYER_VEL = 5
 
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 die_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "die.mp3"))
+win_sound = pygame.mixer.Sound(os.path.join("assets", "Sounds", "next-level.mp3"))
 
 def flip(sprites):
   return [pygame.transform.flip(sprite, True, False) for sprite in sprites]
@@ -554,6 +555,7 @@ def main(window):
 
       for checkpoint in checkpoints:
         if pygame.sprite.collide_mask(player, checkpoint):
+            win_sound.play()
             win_screen(window)
             main(window)  # Restart game
             return        # Exit the current run
