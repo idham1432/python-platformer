@@ -455,7 +455,7 @@ def generate_fixed_platform_course(block_size):
         (41, 1, 1), (41, 2, 1), (41, 3, 1),(41, 4, 1),
         (45, 5, 4), (52, 4, 2), (56, 3, 3), (61, 4, 2),
         (66, 5, 3), (71, 4, 2), (75, 3, 4), (81, 4, 2),
-        (86, 5, 3), (91, 4, 2), (95, 3, 3), (100, 4, 2),
+        (86, 5, 3), (91, 4, 9), (100, 4, 2),
         (102, 4, 1), (102, 5, 1), (102, 6, 1), (102, 7, 1),
         (102, 8, 1), (102, 9, 1),
     ]
@@ -478,7 +478,7 @@ def generate_fixed_platform_course(block_size):
     
     # Example fruit positions
     fruit_positions = [
-        (7,6), (14, 1), (11,5), (11,6), (12,5), (12,6), (20,1), (20,2), (21,1), (21,2), (22,1), (22,2), (31,2), (32, 2), (55, 2), (95, 2)
+        (7,6), (14, 1), (11,5), (11,6), (12,5), (12,6), (20,1), (20,2), (21,1), (21,2), (22,1), (22,2), (31,2), (32, 2), (55, 2)
     ]
 
     for x_block, tier in fruit_positions:
@@ -488,7 +488,7 @@ def generate_fixed_platform_course(block_size):
 
         # Checkpoint positions: (x_block_index, tier)
     checkpoint_positions = [
-        (101, 5)
+        (98, 5)
     ]
 
     for x_index, tier in checkpoint_positions:
