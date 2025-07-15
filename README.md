@@ -43,4 +43,13 @@ A retro-style 2D platformer built with Python and Pygame.
 
    ```bash
    pip install pygame
+   ```
+
+3. **Run the game**
+
+   In the project directory, run:
+
+   ```bash
+   python main.py
+   ```
 
