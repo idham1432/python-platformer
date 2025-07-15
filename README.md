@@ -1,4 +1,4 @@
-# 🍎 Ninja Frog
+# Ninja Frog
 
 A retro-style 2D platformer built with Python and Pygame.
 
